@@ -1,6 +1,7 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import firebase from "../../firebase";
 
 function RegisterPage() {
   const {
@@ -9,6 +10,9 @@ function RegisterPage() {
     watch,
     formState: { errors },
   } = useForm();
+  const [errorFromSubmit, setErrorFromSubmit] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const password = useRef();
 
   // useRef의 용도 : 1. 리액트 컴포넌트에서 특정 DOM을 선택할 때 사용
@@ -17,7 +21,23 @@ function RegisterPage() {
 
   password.current = watch("password");
 
-  const onSubmit = (data) => console.log(data);
+  const onSubmit = async (data) => {
+    try {
+      setLoading(true);
+      const createdUser = await firebase
+        .auth()
+        .createUserWithEmailAndPassword(data.email, data.password);
+      console.log("createdUser", createdUser);
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setErrorFromSubmit(error.message);
+      setLoading(false);
+      setTimeout(() => {
+        setErrorFromSubmit("");
+      }, 3000);
+    }
+  };
 
   return (
     <div className="auth-wrapper">
@@ -80,7 +100,9 @@ function RegisterPage() {
             <span>Passwords do not match.</span>
           )}
 
-        <input type="submit" />
+        {errorFromSubmit && <p>{errorFromSubmit}</p>}
+
+        <input type="submit" disabled={loading} />
         <Link style={{ color: "gray", textDecoration: "none" }} to="login">
           이미 아이디가 있다면...
         </Link>

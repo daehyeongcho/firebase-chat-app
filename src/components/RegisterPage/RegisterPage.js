@@ -37,6 +37,13 @@ function RegisterPage() {
         )}?d=identicon`,
       });
 
+      // Firebase 데이터베이스에 저장해 주기
+      // 'users' 테이블이 없다면 생성함.
+      await firebase.database().ref("users").child(createdUser.user.uid).set({
+        name: createdUser.user.displayName,
+        image: createdUser.user.photoURL,
+      });
+
       setLoading(false);
     } catch (error) {
       console.log(error);
